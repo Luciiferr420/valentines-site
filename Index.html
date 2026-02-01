@@ -1,0 +1,160 @@
+import { useState, useRef, useCallback, useEffect } from "react";
+
+const Index = () => {
+  const [hasAccepted, setHasAccepted] = useState(false);
+  const [noButtonPos, setNoButtonPos] = useState({ x: 0, y: 0 });
+  const [isNoButtonInitialized, setIsNoButtonInitialized] = useState(false);
+  const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number; y: number }[]>([]);
+  const noButtonRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Initialize No button position
+  useEffect(() => {
+    if (!isNoButtonInitialized) {
+      setNoButtonPos({ x: window.innerWidth / 2 + 80, y: window.innerHeight / 2 + 50 });
+      setIsNoButtonInitialized(true);
+    }
+  }, [isNoButtonInitialized]);
+
+  const getRandomPosition = useCallback(() => {
+    const buttonWidth = 160;
+    const buttonHeight = 60;
+    const padding = 20;
+
+    const maxX = window.innerWidth - buttonWidth - padding;
+    const maxY = window.innerHeight - buttonHeight - padding;
+
+    const newX = Math.max(padding, Math.random() * maxX);
+    const newY = Math.max(padding, Math.random() * maxY);
+
+    return { x: newX, y: newY };
+  }, []);
+
+  const handleNoMouseEnter = useCallback(() => {
+    const newPos = getRandomPosition();
+    setNoButtonPos(newPos);
+  }, [getRandomPosition]);
+
+  const handleYesClick = () => {
+    setHasAccepted(true);
+    // Create celebration hearts
+    const hearts = Array.from({ length: 20 }, (_, i) => ({
+      id: Date.now() + i,
+      x: Math.random() * window.innerWidth,
+      y: window.innerHeight + 50,
+    }));
+    setFloatingHearts(hearts);
+
+    // Remove hearts after animation
+    setTimeout(() => setFloatingHearts([]), 3500);
+  };
+
+  // Background decorative hearts
+  const backgroundHearts = Array.from({ length: 12 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    delay: Math.random() * 2,
+    size: 1 + Math.random() * 2,
+  }));
+
+  return (
+    <div ref={containerRef} className="valentine-bg">
+      {/* Background decorative hearts */}
+      {backgroundHearts.map((heart) => (
+        <span
+          key={heart.id}
+          className="background-heart"
+          style={{
+            left: `${heart.x}%`,
+            top: `${heart.y}%`,
+            animationDelay: `${heart.delay}s`,
+            fontSize: `${heart.size}rem`,
+          }}
+        >
+          💕
+        </span>
+      ))}
+
+      {/* Floating celebration hearts */}
+      {floatingHearts.map((heart) => (
+        <span
+          key={heart.id}
+          className="floating-heart"
+          style={{
+            left: heart.x,
+            bottom: 0,
+            animationDelay: `${Math.random() * 0.5}s`,
+          }}
+        >
+          {["💖", "💕", "💗", "💘", "❤️", "💝"][Math.floor(Math.random() * 6)]}
+        </span>
+      ))}
+
+      <div className="flex flex-col items-center justify-center min-h-screen px-6">
+        {!hasAccepted ? (
+          <>
+            {/* Main question */}
+            <div className="text-center mb-12">
+              <h1 className="valentine-title mb-4">
+                Nura, Will you be my Valentine?{" "}
+                <span className="heart-beat">💖</span>
+              </h1>
+              <p className="valentine-subtitle">
+                I promise to make every moment magical ✨
+              </p>
+            </div>
+
+            {/* Buttons container */}
+            <div className="flex gap-6 items-center relative">
+              <button
+                className="btn-yes"
+                onClick={handleYesClick}
+              >
+                Yes 💘
+              </button>
+
+              {/* Placeholder for layout */}
+              <div className="w-40 h-14 opacity-0">spacer</div>
+            </div>
+
+            {/* Escaping No button */}
+            {isNoButtonInitialized && (
+              <button
+                ref={noButtonRef}
+                className="btn-no"
+                style={{
+                  left: noButtonPos.x,
+                  top: noButtonPos.y,
+                }}
+                onMouseEnter={handleNoMouseEnter}
+                onTouchStart={handleNoMouseEnter}
+              >
+                No 😒
+              </button>
+            )}
+          </>
+        ) : (
+          /* Success state */
+          <div className="text-center">
+            <div className="success-message mb-6">
+              Yay! I knew you'd say yes! 🥰💍
+            </div>
+            <p className="valentine-subtitle text-2xl mb-8">
+              You just made me the happiest person alive! 💕
+            </p>
+            <div className="flex gap-4 justify-center text-5xl">
+              <span className="heart-beat" style={{ animationDelay: "0s" }}>💖</span>
+              <span className="heart-beat" style={{ animationDelay: "0.2s" }}>💕</span>
+              <span className="heart-beat" style={{ animationDelay: "0.4s" }}>💗</span>
+              <span className="heart-beat" style={{ animationDelay: "0.6s" }}>💘</span>
+              <span className="heart-beat" style={{ animationDelay: "0.8s" }}>💝</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Index;
